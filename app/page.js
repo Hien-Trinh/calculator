@@ -1,12 +1,39 @@
 "use client"
 
-import styles from "./page.module.css"
-import { useState } from "react"
+import styles from "./page.module.scss"
+import { useState, useEffect } from "react"
 
 export default function Home() {
     const [cache, setCache] = useState()
     const [current, setCurrent] = useState("0")
     const [operator, setOperator] = useState()
+
+    const useEffect = () => {
+        document.addEventListener("keydown", handleKeyDown)
+        return () => {
+            document.removeEventListener("keydown", handleKeyDown)
+        }
+    }
+
+    const handleKeyDown = (e) => {
+        if (e.key.match(/[0-9]/)) {
+            handleNum(e.key)
+        } else if (e.key === ".") {
+            handleNum(e.key)
+        } else if (e.key === "Backspace") {
+            handleClear()
+        } else if (e.key === "+") {
+            operate("+")
+        } else if (e.key === "-") {
+            operate("-")
+        } else if (e.key === "*") {
+            operate("x")
+        } else if (e.key === "/") {
+            operate("/")
+        } else if (e.key === "Enter") {
+            resolve()
+        }
+    }
 
     const round = (num) => {
         return +parseFloat(num).toFixed(6)
@@ -26,6 +53,7 @@ export default function Home() {
 
     const handleClear = () => {
         setCurrent("0")
+        setOperator()
     }
 
     const flipSign = () => {
@@ -37,12 +65,14 @@ export default function Home() {
     }
 
     const operate = (op) => {
-        if (cache) {
+        if (operator) {
             resolve()
+        } else {
+            setCache(current)
         }
-        setCache(current)
-        setCurrent("0")
+
         setOperator(op)
+        setCurrent("0")
     }
 
     const resolve = () => {
@@ -50,9 +80,17 @@ export default function Home() {
             return
         }
 
-        if (operator === "/") {
-            setCurrent(cache / current)
+        if (operator === "+") {
+            setCurrent(round(parseFloat(cache) + parseFloat(current)))
+        } else if (operator === "-") {
+            setCurrent(round(parseFloat(cache) - parseFloat(current)))
+        } else if (operator === "x") {
+            setCurrent(round(parseFloat(cache) * parseFloat(current)))
+        } else if (operator === "/") {
+            setCurrent(round(parseFloat(cache) / parseFloat(current)))
         }
+
+        setOperator()
     }
 
     return (
@@ -79,7 +117,9 @@ export default function Home() {
                         %
                     </button>
                     <button
-                        className={styles.button}
+                        className={`${styles.button} ${
+                            operator === "/" ? styles.active : null
+                        }`}
                         onClick={() => operate("/")}
                     >
                         ÷
@@ -105,7 +145,9 @@ export default function Home() {
                         9
                     </button>
                     <button
-                        className={styles.button}
+                        className={`${styles.button} ${
+                            operator === "x" ? styles.active : null
+                        }`}
                         onClick={() => operate("x")}
                     >
                         ×
@@ -131,7 +173,9 @@ export default function Home() {
                         6
                     </button>
                     <button
-                        className={styles.button}
+                        className={`${styles.button} ${
+                            operator === "-" ? styles.active : null
+                        }`}
                         onClick={() => operate("-")}
                     >
                         -
@@ -157,7 +201,9 @@ export default function Home() {
                         3
                     </button>
                     <button
-                        className={styles.button}
+                        className={`${styles.button} ${
+                            operator === "+" ? styles.active : null
+                        }`}
                         onClick={() => operate("+")}
                     >
                         +
@@ -165,7 +211,7 @@ export default function Home() {
                 </div>
                 <div className={styles.row}>
                     <button
-                        className={styles.button}
+                        className={`${styles.button} ${styles.double}`}
                         onClick={() => handleNum("0")}
                     >
                         0
